@@ -53,3 +53,11 @@
 .h5p-video::cue {
   font-size: 1em;
 }
+
+.h5p-video-360-overlay-default {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+}
