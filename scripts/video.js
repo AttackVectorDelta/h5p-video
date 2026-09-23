@@ -145,6 +145,8 @@ H5P.Video = (function ($, ContentCopyrights, MediaCopyright, handlers) {
      * @param {jQuery} $container
      */
     self.attach = function ($container) {
+      self.$container = $container;
+
       $container.addClass('h5p-video h5p-theme').html('');
 
       if (self.appendTo !== undefined) {
@@ -275,30 +277,30 @@ H5P.Video = (function ($, ContentCopyrights, MediaCopyright, handlers) {
      * @public
      */
     self.create360Listeners = () => {
-      const videoContainer = document.getElementsByClassName('h5p-video');
-
-      if (videoContainer.length === 0) {
+      if (!self.$container || document.getElementsByClassName('h5p-video-360-overlay-' + self.uniqueId ?? '').length) {
         return;
       }
+
+      self.uniqueId = crypto.getRandomValues(new Uint16Array(1))[0];
 
       const overlayTemplate = self.get360OverlayTemplate();
 
       if (overlayTemplate === null) {
         // If handler has no special overlay, use simple 100%x100% <div>. 
         let overlayElement = document.createElement('div');
-        overlayElement.classList.add('h5p-video-360-overlay', 'h5p-video-360-overlay-default');
-        videoContainer[0].append(overlayElement);
+        overlayElement.classList.add('h5p-video-360-overlay-' + self.uniqueId, 'h5p-video-360-overlay-default');
+        self.$container.append(overlayElement);
       }
       else {
         overlayTemplate.forEach((templatePartProperties) => {
           let overlayPartElement = document.createElement('div');
-          overlayPartElement.classList.add('h5p-video-360-overlay');
+          overlayPartElement.classList.add('h5p-video-360-overlay-' + self.uniqueId);
           
           Object.keys(templatePartProperties).forEach((cssPropery) => {
             overlayPartElement.style[cssPropery] = templatePartProperties[cssPropery];
           });
 
-          videoContainer[0].append(overlayPartElement);
+          self.$container.append(overlayPartElement);
         });
       }
 
@@ -354,7 +356,7 @@ H5P.Video = (function ($, ContentCopyrights, MediaCopyright, handlers) {
         self.is360EventSlotOpen = true;
       };
 
-      Array.from(document.getElementsByClassName('h5p-video-360-overlay')).forEach((element) => {
+      Array.from(document.getElementsByClassName('h5p-video-360-overlay-' + self.uniqueId)).forEach((element) => {
         element.addEventListener('mousedown', (event) => {
           start360Drag(event.clientX, event.clientY);
         });
