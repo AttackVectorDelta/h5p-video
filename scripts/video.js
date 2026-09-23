@@ -285,11 +285,14 @@ H5P.Video = (function ($, ContentCopyrights, MediaCopyright, handlers) {
 
       const overlayTemplate = self.get360OverlayTemplate();
 
+      let overlayContainerElement = document.createElement('div');
+      overlayContainerElement.classList.add('h5p-video-360-overlay-container-' + self.uniqueId);
+
       if (overlayTemplate === null) {
         // If handler has no special overlay, use simple 100%x100% <div>. 
         let overlayElement = document.createElement('div');
         overlayElement.classList.add('h5p-video-360-overlay-' + self.uniqueId, 'h5p-video-360-overlay-default');
-        self.$container.append(overlayElement);
+        overlayContainerElement.append(overlayElement);
       }
       else {
         overlayTemplate.forEach((templatePartProperties) => {
@@ -300,9 +303,11 @@ H5P.Video = (function ($, ContentCopyrights, MediaCopyright, handlers) {
             overlayPartElement.style[cssPropery] = templatePartProperties[cssPropery];
           });
 
-          self.$container.append(overlayPartElement);
+          overlayContainerElement.append(overlayPartElement);
         });
       }
+
+      self.$container.append(overlayContainerElement);
 
       const start360Drag = (x, y) => {
         self.user360Draging = true;
@@ -356,15 +361,13 @@ H5P.Video = (function ($, ContentCopyrights, MediaCopyright, handlers) {
         self.is360EventSlotOpen = true;
       };
 
-      Array.from(document.getElementsByClassName('h5p-video-360-overlay-' + self.uniqueId)).forEach((element) => {
-        element.addEventListener('mousedown', (event) => {
-          start360Drag(event.clientX, event.clientY);
-        });
+      document.getElementsByClassName('h5p-video-360-overlay-container-' + self.uniqueId)[0].addEventListener('mousedown', (event) => {
+        start360Drag(event.clientX, event.clientY);
+      });
         
-        element.addEventListener('touchstart', (event) => {
-          event.preventDefault();
-          start360Drag(event.touches[0].clientX, event.touches[0].clientY);
-        });
+      document.getElementsByClassName('h5p-video-360-overlay-container-' + self.uniqueId)[0].addEventListener('touchstart', (event) => {
+        event.preventDefault();
+        start360Drag(event.touches[0].clientX, event.touches[0].clientY);
       });
 
       window.addEventListener('mousemove', (event) => {
