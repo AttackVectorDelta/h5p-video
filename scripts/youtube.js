@@ -595,7 +595,7 @@ H5P.VideoYouTube = (function ($) {
         return;
       }
 
-      let updatedProps = {
+      const updatedProps = {
         ...player.getSphericalProperties(),
         ...properties
       };
@@ -605,7 +605,7 @@ H5P.VideoYouTube = (function ($) {
     };
 
     /**
-     * Returns properties for custom overlay elemets.
+     * Returns properties for custom overlay elements.
      * 
      * @override
      * @return {Object[] | null}

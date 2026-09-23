@@ -589,7 +589,7 @@ H5P.VideoVimeo = (function ($) {
     };
 
     /**
-     * Returns properties for custom overlay elemets.
+     * Returns properties for custom overlay elements.
      * 
      * @override
      * @return {Object[] | null}
