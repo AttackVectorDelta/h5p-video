@@ -50,6 +50,15 @@ H5P.jQuery(document).on('ready', function () {
 });
 ```
 
+## Overriding default properties
+Several default properties can be overriden when creating a new instance of the Video class by passing values in the `parameters` property of the constructor.
+
+Property | Description | Default value
+------------ | ------------- | ------------
+threeSixty.eventThrottleTime | Time, in miliseconds, that needs to pass after a successful 360 view update, for new events to be registered. Used to prevent event overflow. Only used for 360 degree videos. | 10
+threeSixty.dragSensitivity | Sensitivity for mouse dragging when changing 360 view. Accepts values between 300 and 1500. The lower the number, the faster the view moves. Only used for 360 degree videos. | 700
+
+
 ## Changing Video Quality
 
 The following example illustrates how you may change video quality using JS:
