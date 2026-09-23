@@ -1,6 +1,9 @@
 /** @namespace H5P */
 H5P.Video = (function ($, ContentCopyrights, MediaCopyright, handlers) {
 
+  const THREESIXTY_EVENT_THROTLE_TIME = 10;
+  const THREESIXTY_SENSITIVITY = 700;
+
   /**
    * The ultimate H5P video player!
    *
@@ -31,9 +34,9 @@ H5P.Video = (function ($, ContentCopyrights, MediaCopyright, handlers) {
     self.user360DragingLastLocation = null;
     self.is360EventSlotOpen = true;
     // Event overflow prevention - only process next event (X)ms after last successful one
-    self.eventThrottleTime = parameters?.threeSixty?.eventThrottleTime || 10;
-    // Sensitivity for drag events - values between 1500 (less sensitive) and 300 (more sensitive) work best
-    self.dragSensitivity = parameters?.threeSixty?.dragSensitivity || 700;
+    self.eventThrottleTime = parameters?.threeSixty?.eventThrottleTime || THREESIXTY_EVENT_THROTLE_TIME;
+    // Sensitivity for drag events - lower value -> higher sensitivity.
+    self.dragSensitivity = Math.max(300, Math.min(parameters?.threeSixty?.dragSensitivity || THREESIXTY_SENSITIVITY, 1500));
 
     // Reference to the handler
     var handlerName = '';
@@ -255,8 +258,8 @@ H5P.Video = (function ($, ContentCopyrights, MediaCopyright, handlers) {
     /**
      * Return properties for custom overlay elements. Default implementation, may be overridden by sub classes.
      * 
-     * Event listners can't be added to embedded iFrames. The only way to capture events is by adding a
-     * transparent overlay element. Some players render native UI elemets, which need to be avoided to
+     * Event listeners can't be added to embedded iFrames. The only way to capture events is by adding a
+     * transparent overlay element. Some players render native UI elements, which need to be avoided to
      * preserve functionality, so the overlay can be built out of multiple elements around existing UI.
      *
      * @public
@@ -272,12 +275,13 @@ H5P.Video = (function ($, ContentCopyrights, MediaCopyright, handlers) {
      * @public
      */
     self.create360Listeners = () => {
-      const overlayTemplate = self.get360OverlayTemplate();
       const videoContainer = document.getElementsByClassName('h5p-video');
 
       if (videoContainer.length === 0) {
         return;
       }
+
+      const overlayTemplate = self.get360OverlayTemplate();
 
       if (overlayTemplate === null) {
         // If handler has no special overlay, use simple 100%x100% <div>. 
@@ -300,10 +304,7 @@ H5P.Video = (function ($, ContentCopyrights, MediaCopyright, handlers) {
 
       const start360Drag = (x, y) => {
         self.user360Draging = true;
-        self.user360DragingLastLocation = {
-          x,
-          y
-        };
+        self.user360DragingLastLocation = {x, y};
       };
 
       const update360Drag = async (x, y) => {
@@ -324,7 +325,14 @@ H5P.Video = (function ($, ContentCopyrights, MediaCopyright, handlers) {
         let sensitivity = current360ViewProps.fov / self.dragSensitivity;
 
         let normalizedYaw = current360ViewProps.yaw - (diffX * sensitivity);
-        normalizedYaw = normalizedYaw > 360 ? (normalizedYaw % 360) : (normalizedYaw % 360 < 0 ? (normalizedYaw + 360) : normalizedYaw);
+
+        if (normalizedYaw > 360) {
+          normalizedYaw %= 360;
+        }
+        else {
+          normalizedYaw = normalizedYaw % 360 < 0 ? (normalizedYaw + 360) : normalizedYaw;
+        }
+
         const correctedPitch = Math.max(-90, Math.min(90, (current360ViewProps.pitch + (diffY * sensitivity))));
 
         await self.set360ViewProperties({
@@ -334,10 +342,7 @@ H5P.Video = (function ($, ContentCopyrights, MediaCopyright, handlers) {
           fov: current360ViewProps.fov
         });
 
-        self.user360DragingLastLocation = {
-          x,
-          y
-        };
+        self.user360DragingLastLocation = {x, y};
 
         setTimeout(() => {
           self.is360EventSlotOpen = true;
@@ -388,17 +393,11 @@ H5P.Video = (function ($, ContentCopyrights, MediaCopyright, handlers) {
     });
 
     self.on('stateChange', (event) => {
-      const state = event.data;
-
-      switch (state) {
-        case H5P.Video.PLAYING:
-          if (self.firstPlay) {
-            if (self.is360 && self.canControl360) {
-              self.create360Listeners();
-            }
-          }
-          self.firstPlay = false;
-          break;
+      if (event.data === H5P.Video.PLAYING) {
+        if (self.firstPlay && self.is360 && self.canControl360) {
+          self.create360Listeners();
+        }
+        self.firstPlay = false;
       }
     });
 
